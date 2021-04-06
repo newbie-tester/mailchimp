@@ -1,7 +1,8 @@
 package stepDefinitions;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -25,53 +26,40 @@ public class StepDefinitions {
 		driver.get("https://login.mailchimp.com/signup/");
 		driver.manage().window().maximize();
 		click(driver, By.id("onetrust-accept-btn-handler"));
-//		WebElement cookieAccept = (new WebDriverWait(driver, 10)).until(ExpectedConditions.
-//				presenceOfElementLocated(By.id("onetrust-accept-btn-handler)));
-//		cookieAccept.click();
 	}
 
-	@Given("enter email address, username and password")
-	public void enter_email_address_username_and_password() {
-		WebElement email = driver.findElement(By.id("email"));
-		email.sendKeys("hej@hej.com");
-		WebElement username = driver.findElement(By.id("new_username"));
-		username.sendKeys(
-				"Averylongusernameover100charactersAverylongusernameover100charactersAverylongusernameover100characters");
-		WebElement password = driver.findElement(By.id("new_password"));
-		password.sendKeys("Abcdef+1");
+	@Given("enter {string}, {string} and {string}")
+	public void enter_email_username_and_password(String email, String username, String password) {
+		driver.findElement(By.id("email")).sendKeys(email);
+		driver.findElement(By.id("new_username")).sendKeys(username);
+		driver.findElement(By.id("new_password")).sendKeys(password);
 	}
 
 	@When("I click on the sign-up button")
 	public void i_click_on_the_sign_up_button() {
 		click(driver, By.id("create-account"));
-
-//		WebElement signUpButton = (new WebDriverWait(driver, 10)).until(ExpectedConditions.
-//				presenceOfElementLocated(By.id("create-account")));
-//		signUpButton.click();
 	}
 
-	@Then("I am registered as a user")
-	public void i_am_registered_as_a_user() {
-		WebElement successPage = (new WebDriverWait(driver, 10))
-				.until(ExpectedConditions.presenceOfElementLocated(By.tagName("h1")));
-		assertEquals("Check your email", successPage.getAttribute("textContent"));
-		driver.quit();
-	}
-
-	@Then("I get an error message")
-	public void i_get_an_error_message() {
-		WebElement errorMessage = driver.findElement(By.className("invalid-error"));
-//		assertTrue(errorMessage.getAttribute("textContent").contains("username already exists"));
-//		assertEquals("Please enter a value", errorMessage.getAttribute("textContent"));
-		assertEquals("Enter a value less than 100 characters long", errorMessage.getAttribute("textContent"));
-		driver.quit();
+	@Then("A {string} appears showing the sign-up status.")
+	public void a_message_appears_showing_the_sign_up_status(String message) {
+		
+		driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+		
+		WebElement h1 = driver.findElement(By.tagName("h1"));
+		
+		if (h1.getText().equals("Check your email")) {
+			assertEquals("Check your email", h1.getAttribute("textContent"));
+		}
+		else if (h1.getText().equals("Welcome to Mailchimp")) {
+			WebElement errorMessage = driver.findElement(By.className("invalid-error"));			
+			assertEquals(message, errorMessage.getAttribute("textContent"));
+		}
+		driver.quit();	
 	}
 
 	private void click(WebDriver driver, By by) {
-
 		(new WebDriverWait(driver, 10)).until(ExpectedConditions.elementToBeClickable(by));
 		driver.findElement(by).click();
-
 	}
 
 }
